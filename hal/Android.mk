@@ -69,8 +69,16 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_USBAUDIO)),true)
     LOCAL_SRC_FILES += audio_extn/usb.c
 endif
 
-ifeq ($(BOARD_HAVE_SAMSUNG_CSDCLIENT),true)
+ifeq ($(strip $(BOARD_HAVE_NEW_QCOM_CSDCLIENT)),true)
+    LOCAL_CFLAGS += -DNEW_CSDCLIENT
+endif
+
+ifeq ($(strip $(BOARD_HAVE_SAMSUNG_CSDCLIENT)),true)
     LOCAL_CFLAGS += -DSAMSUNG_CSDCLIENT
+endif
+
+ifeq ($(strip $(BOARD_HAVE_AUDIENCE_ES325_2MIC)),true)
+    LOCAL_CFLAGS += -DUSE_ES325_2MIC
 endif
 
 ifeq ($(strip $(AUDIO_FEATURE_ENABLED_HFP)),true)
@@ -126,6 +134,10 @@ ifeq ($(strip $(DOLBY_DAP)),true)
 ifneq ($(strip $(DOLBY_DDP)),true)
     LOCAL_SRC_FILES += audio_extn/dolby.c
 endif
+endif
+
+ifeq ($(strip $(BOARD_HAVE_NEW_QCOM_CSDCLIENT)),true)
+    LOCAL_CFLAGS += -DNEW_CSDCLIENT
 endif
 
 ifeq ($(strip $(AUDIO_FEATURE_ENABLED_LOW_LATENCY_CAPTURE)),true)
