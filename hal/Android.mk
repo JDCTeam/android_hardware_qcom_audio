@@ -77,10 +77,6 @@ ifeq ($(strip $(BOARD_HAVE_SAMSUNG_CSDCLIENT)),true)
     LOCAL_CFLAGS += -DSAMSUNG_CSDCLIENT
 endif
 
-ifeq ($(strip $(BOARD_HAVE_AUDIENCE_ES325_2MIC)),true)
-    LOCAL_CFLAGS += -DUSE_ES325_2MIC
-endif
-
 ifeq ($(strip $(AUDIO_FEATURE_ENABLED_HFP)),true)
     LOCAL_CFLAGS += -DHFP_ENABLED
     LOCAL_SRC_FILES += audio_extn/hfp.c
