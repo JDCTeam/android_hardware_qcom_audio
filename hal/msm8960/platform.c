@@ -38,6 +38,8 @@
 #include "sound/msmcal-hwdep.h"
 #endif
 
+#define UNUSED(a) ((void)(a))
+
 #define SOUND_TRIGGER_DEVICE_HANDSET_MONO_LOW_POWER_ACDB_ID (100)
 
 #define MIXER_XML_PATH "/system/etc/mixer_paths.xml"
@@ -592,7 +594,7 @@ static struct csd_data *open_csd_client()
         csd->deinit = (deinit_t)dlsym(csd->csd_client,
                                              "csd_client_deinit");
         if (csd->deinit == NULL) {
-            ALOGE("%s: dlsym error %s for csd_client_deinit", __func__,
+            ALOGW("%s: dlsym error %s for csd_client_deinit", __func__,
                   dlerror());
             goto error;
         }
@@ -686,7 +688,7 @@ static struct csd_data *open_csd_client()
         csd->init = (init_t)dlsym(csd->csd_client, "csd_client_init");
 
         if (csd->init == NULL) {
-            ALOGE("%s: dlsym error %s for csd_client_init",
+            ALOGW("%s: dlsym error %s for csd_client_init",
                   __func__, dlerror());
             goto error;
         } else {
@@ -704,7 +706,11 @@ error:
 void close_csd_client(struct csd_data *csd)
 {
     if (csd != NULL) {
-        csd->deinit();
+	if (csd->deinit == NULL) {
+		ALOGW("%s: CSD deinit function not present", __func__);
+	} else {
+		csd->deinit();
+	}
         dlclose(csd->csd_client);
         free(csd);
         csd = NULL;
@@ -741,6 +747,7 @@ void *platform_init(struct audio_device *adev)
 {
     char platform[PROPERTY_VALUE_MAX];
     char baseband[PROPERTY_VALUE_MAX];
+    char baseband_arch[PROPERTY_VALUE_MAX];
     char value[PROPERTY_VALUE_MAX];
     struct platform_data *my_data = NULL;
     int retry_num = 0, snd_card_num = 0;
@@ -887,8 +894,10 @@ void *platform_init(struct audio_device *adev)
      */
     property_get("ro.board.platform", platform, "");
     property_get("ro.baseband", baseband, "");
+    property_get("ro.baseband.arch" , baseband_arch, "");
     if (!strncmp("msm8960", platform, sizeof("msm8960")) &&
-        !strncmp("mdm", baseband, sizeof("mdm"))) {
+        (!strncmp("mdm", baseband, sizeof("mdm")) || 
+	 !strncmp("mdm",baseband_arch,sizeof("mdm")))){
          my_data->csd = open_csd_client();
     }
 
@@ -1196,6 +1205,7 @@ int platform_start_voice_call(void *platform, uint32_t vsid __unused)
 #ifdef NEW_CSDCLIENT
         ret = my_data->csd->start_voice(vsid);
 #else
+	UNUSED(vsid);
 	ret = my_data->csd->start_voice();
 #endif
         if (ret < 0) {
@@ -1214,6 +1224,7 @@ int platform_stop_voice_call(void *platform, uint32_t vsid __unused)
 #ifdef NEW_CSDCLIENT
         ret = my_data->csd->stop_voice(vsid);
 #else
+	UNUSED(vsid);
 	ret = my_data->csd->stop_voice();
 #endif
         if (ret < 0) {
